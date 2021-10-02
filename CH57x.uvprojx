@@ -502,7 +502,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>New Group</GroupName>
+          <GroupName>FreeRTOS</GroupName>
           <Files>
             <File>
               <FileName>FreeRTOSPort.c</FileName>
@@ -553,6 +553,16 @@
               <FileName>heap_4.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\lib\FreeRTOS\FreeRTOS-Kernel\portable\MemMang\heap_4.c</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOSConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\FreeRTOS\FreeRTOSConfig.h</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOSPort.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\FreeRTOS\FreeRTOSPort.h</FilePath>
             </File>
           </Files>
         </Group>
