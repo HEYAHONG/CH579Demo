@@ -207,7 +207,7 @@
             <Ra1Chk>0</Ra1Chk>
             <Ra2Chk>0</Ra2Chk>
             <Ra3Chk>0</Ra3Chk>
-            <Im1Chk>0</Im1Chk>
+            <Im1Chk>1</Im1Chk>
             <Im2Chk>1</Im2Chk>
             <OnChipMemories>
               <Ocm1>
@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>DEBUG</Define>
               <Undefine></Undefine>
-              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0</IncludePath>
+              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\NET\LIB</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -563,6 +563,21 @@
               <FileName>FreeRTOSPort.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\lib\FreeRTOS\FreeRTOSPort.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Net</GroupName>
+          <Files>
+            <File>
+              <FileName>CH57xNET.LIB</FileName>
+              <FileType>4</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\LIB\CH57xNET.LIB</FilePath>
+            </File>
+            <File>
+              <FileName>net_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\net_main.c</FilePath>
             </File>
           </Files>
         </Group>
