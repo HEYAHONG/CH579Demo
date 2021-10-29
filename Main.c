@@ -31,11 +31,6 @@ void main_task1(void *arg)
 void main_task2(void *arg)
 {
   vTaskDelay(3000);
-	{
-			ip4_addr_t dns;
-			ip4addr_aton("172.18.0.1",&dns);
-			dns_setserver(0,&dns);
-	}
   while(1)
   {
 		vTaskDelay(3000);
