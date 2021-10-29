@@ -26,7 +26,7 @@
 #define configUSE_QUEUE_SETS                    1
 #define configUSE_TIME_SLICING                  0
 #define configUSE_NEWLIB_REENTRANT              0
-#define configENABLE_BACKWARD_COMPATIBILITY     0
+#define configENABLE_BACKWARD_COMPATIBILITY     1
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 5
 #define configSTACK_DEPTH_TYPE                  uint32_t
 #define configMESSAGE_BUFFER_LENGTH_TYPE        size_t
@@ -86,18 +86,13 @@ to all Cortex-M ports, and do not rely on any particular library functions. */
 See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
+#include "stdio.h"
+#include "stdlib.h"
 /* Define to trap errors during development. */
-#define configASSERT( x ) if ((x) == 0) {taskDISABLE_INTERRUPTS(); for( ;; );} 
+#define configASSERT( x ) if ((x) == 0) {taskDISABLE_INTERRUPTS(); printf("FreeRTOS Assert:%s:%d %s\r\n",__FILE__,__LINE__,__FUNCTION__); for( ;; );} 
 
-/* FreeRTOS MPU specific definitions. */
-#define configINCLUDE_APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS 0
-#define configTOTAL_MPU_REGIONS                                8 /* Default value. */
-#define configTEX_S_C_B_FLASH                                  0x07UL /* Default value. */
-#define configTEX_S_C_B_SRAM                                   0x07UL /* Default value. */
-#define configENFORCE_SYSTEM_CALLS_FROM_KERNEL_ONLY            1
 
-/* ARMv8-M secure side port related definitions. */
-#define secureconfigMAX_SECURE_CONTEXTS         5
+
 
 /* Optional functions - most linkers will remove unused functions anyway. */
 #define INCLUDE_vTaskPrioritySet                1
