@@ -8,6 +8,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "timers.h"
+#include "MQTTPacket.H"
 
 #define KEEPLIVE_ENABLE                      1                                  /* 开启KEEPLIVE功能 */
 
@@ -53,15 +54,36 @@ UINT8 MACAddr[6] = {0x84,0xc2,0xe4,0x02,0x03,0x04};                             
 UINT8 IPAddr[4] = {192,168,1,200};                                                          /* CH579IP地址 */
 UINT8 GWIPAddr[4] = {192,168,1,1};                                              /* CH579网关 */
 UINT8 IPMask[4] = {255,255,255,0};                                              /* CH579子网掩码 */
-UINT8 DESIP[4] = {192,168,1,100};                                               /* 目的IP地址 */
+
+
+UINT8 DESIP[4] = {116,85,50,218};                                               /* 目的IP地址 */
+UINT16 aport=1000;											                   /* CH579源端口 */
 
 /* 网口灯定义 PB口低十六位有效 */
 UINT16 CH57xNET_LEDCONN=0x0010;                                                 /* 连接指示灯 PB4 */
 UINT16 CH57xNET_LEDDATA=0x0080;                                                 /* 通讯指示灯 PB7 */ 
 
-UINT8 SocketId;                                                                 /* 保存socket索引，可以不用定义 */
-UINT8 SocketRecvBuf[RECE_BUF_LEN];                                              /* socket接收缓冲区 */
-UINT8 MyBuf[RECE_BUF_LEN];                                                      /* 定义一个临时缓冲区 */
+char *username  = "";							                               /* 设备名，每个设备唯一，可用”/“做分级 */
+char *password  = "";								                           /* 服务器登陆密码 */
+char *sub_topic = "+/#";								                           /* 订阅的会话名，为了自发自收，应与发布的会话名相同 */
+char *pub_topic = "";									                       /* 发布的会话*/
+size_t mqtt_keepalive=20;																			/*MQTT 的Keepalaive*/
+char *mqtt_clientid="CH579";																/*MQTT的clientid*/
+
+
+UINT8 SocketId;                                                                /* 保存socket索引，可以不用定义 */
+UINT8 SocketRecvBuf[RECE_BUF_LEN];                                             /* socket接收缓冲区 */
+UINT8 MyBuf[RECE_BUF_LEN];                                                     /* 定义一个临时缓冲区 */
+
+UINT8 con_flag=0;										                       /* 已连接MQTT服务器标志位 */
+UINT8 pub_flag=1;											                   /* 已发布会话消息标志位 */
+UINT8 sub_flag=0;											                   /* 已订阅会话标志位 */
+UINT8 tout_flag=0;											                   /* 超时标志位 */
+UINT16 packetid=0;											                   /* 包ID */
+
+
+
+
 
 
 //extern const UINT16 *memp_num;
@@ -100,6 +122,198 @@ void mStopIfError(UINT8 iError)
 }
 
 
+	/*******************************************************************************
+* Function Name	: Transport_Open
+* Description	: 创建TCP连接
+* Input			: None
+* Output		: None
+* Return		: None
+*******************************************************************************/
+UINT8 Transport_Open()
+{
+	UINT8 i;																														 
+	SOCK_INF TmpSocketInf;									                            /* 创建临时socket变量 */
+
+	memset((void *)&TmpSocketInf,0,sizeof(SOCK_INF));		                            /* 库内部会将此变量复制，所以最好将临时变量先全部清零 */
+	memcpy((void *)TmpSocketInf.IPAddr,DESIP,4);		                             	/* 设置目的IP地址 */
+	TmpSocketInf.DesPort = 1883;							                            /* 设置目的端口 */
+	TmpSocketInf.SourPort = aport++;					                              	/* 设置源端口 */
+	TmpSocketInf.ProtoType = PROTO_TYPE_TCP;			                             	/* 设置socekt类型 */
+	TmpSocketInf.RecvStartPoint = (UINT32)SocketRecvBuf;                               	/* 设置接收缓冲区的接收缓冲区 */
+	TmpSocketInf.RecvBufLen = RECE_BUF_LEN ;				                            /* 设置接收缓冲区的接收长度 */
+	i = CH57xNET_SocketCreat(&SocketId,&TmpSocketInf);	                             	/* 创建socket，将返回的socket索引保存在SocketId中 */
+	mStopIfError(i);									                               	/* 检查错误 */
+	
+	i = CH57xNET_SocketConnect(SocketId);					                            /* TCP连接 */
+	mStopIfError(i);									                               	/* 检查错误 */
+	return SocketId;
+}
+
+
+/*******************************************************************************
+* Function Name	: Transport_Close
+* Description	: 关闭TCP连接
+* Input			: None
+* Output		: None
+* Return		: None
+*******************************************************************************/
+UINT8 Transport_Close()
+{
+	UINT8 i;
+	i=CH57xNET_SocketClose(SocketId,TCP_CLOSE_NORMAL);
+	mStopIfError(i);
+	return i;
+}
+
+
+/*******************************************************************************
+* Function Name	: Transport_SendPacket
+* Description	: 以太网发送数据
+* Input			: UINT8 *buf 发送数据的首字节地址
+				  UINT32 len 发送数据的长度
+* Output		: None
+* Return		: None
+*******************************************************************************/
+void Transport_SendPacket(UINT8 *buf,UINT32 len)
+{
+	UINT32 totallen;
+	UINT8 *p=buf;
+	
+	totallen=len;
+	while(1)
+	{
+		len = totallen;
+		CH57xNET_SocketSend(SocketId,p,&len);				                         	/* 将MyBuf中的数据发送 */
+		totallen -= len;					 				                          	/* 将总长度减去以及发送完毕的长度 */
+		p += len;											                         	/* 将缓冲区指针偏移*/
+		if(totallen)continue;								                         	/* 如果数据未发送完毕，则继续发送*/
+		break;												                         	/* 发送完毕，退出 */
+	}
+}
+
+
+/*******************************************************************************
+* Function Name	: MQTT_Connect
+* Description	: 创建MQTT连接
+* Input			: char *username 设备名
+				  char *password 服务器连接密码
+* Output		: None
+* Return		: None
+*******************************************************************************/
+void MQTT_Connect(char *username,char *password)
+{
+	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+	UINT32 len;
+	UINT8 buf[200];
+
+	data.clientID.cstring = mqtt_clientid;
+	data.keepAliveInterval = mqtt_keepalive;
+	data.cleansession = 1;
+	data.username.cstring = username;																		
+	data.password.cstring = password;
+	 
+	len=MQTTSerialize_connect(buf,sizeof(buf),&data);											
+	Transport_SendPacket(buf,len);						
+}
+
+
+/*******************************************************************************
+* Function Name	: MQTT_Subscribe
+* Description	: MQTT订阅一个主题
+* Input			: char *topic 订阅的主题名
+* Output		: None
+* Return		: None
+*******************************************************************************/
+void MQTT_Subscribe( char *topic)
+{
+	MQTTString topicString = MQTTString_initializer;
+	int req_qos=0;
+	UINT32 len;
+	UINT32 msgid=1;
+	UINT8 buf[200];
+	
+	topicString.cstring=topic;
+	len=MQTTSerialize_subscribe(buf,sizeof(buf),0,msgid,1,&topicString,&req_qos);
+	Transport_SendPacket(buf,len);
+}
+
+
+/*******************************************************************************
+* Function Name	: MQTT_Unsubscribe
+* Description	: MQTT取消订阅一个主题
+* Input			: char *topic 取消订阅的主题名
+* Output		: None
+* Return		: None
+*******************************************************************************/
+void MQTT_Unsubscribe(char *topic)
+{
+	MQTTString topicString = MQTTString_initializer;
+	UINT32 len;
+	UINT32 msgid=1;
+	UINT8 buf[200];
+	
+	topicString.cstring=topic;
+	len=MQTTSerialize_unsubscribe(buf,sizeof(buf),0,msgid,1,&topicString);
+	Transport_SendPacket(buf,len);
+}
+
+
+/*******************************************************************************
+* Function Name	: MQTT_Subscribe
+* Description	: MQTT订阅一个主题
+* Input			: char *topic 订阅的主题名
+* Output		: None
+* Return		: None
+*******************************************************************************/
+void MQTT_Publish(char *topic,char *payload)
+{
+	MQTTString topicString = MQTTString_initializer;
+	UINT32 payloadlen;
+	UINT32 len;
+	UINT8 buf[1024];
+	
+	topicString.cstring=topic; 
+	payloadlen=strlen(payload);
+	len= MQTTSerialize_publish(buf,sizeof(buf),0,0,0,packetid++,topicString,(uint8_t *)payload,payloadlen);	
+	Transport_SendPacket(buf,len);
+}
+
+
+/*******************************************************************************
+* Function Name	: MQTT_Pingreq
+* Description	: MQTT发送心跳包
+* Input			: None
+* Output		: None
+* Return		: None
+*******************************************************************************/
+void MQTT_Pingreq()
+{
+	UINT32 len;
+	UINT8 buf[200];
+	
+	len=MQTTSerialize_pingreq(buf,sizeof(buf));
+	Transport_SendPacket(buf,len);
+}
+
+
+
+/*******************************************************************************
+* Function Name	: MQTT_Disconnect
+* Description	: 断开MQTT连接
+* Input			: None
+* Output		: None
+* Return		: None
+*******************************************************************************/
+void MQTT_Disconnect()
+{
+	UINT32 len;
+	UINT8 buf[50];
+	len=MQTTSerialize_disconnect(buf,sizeof(buf));
+	Transport_SendPacket(buf,len);
+}
+
+
+
 /*******************************************************************************
 * Function Name  : CH57xNET_CreatTcpSocket
 * Description    : 创建TCP Client socket
@@ -127,7 +341,7 @@ void CH57xNET_CreatTcpSocket(void)
 
    i = CH57xNET_SocketConnect(SocketId);                                        /* TCP连接 */
    mStopIfError(i);                                                             /* 检查错误 */
-   i = CH57xNET_SetSocketTTL( SocketId,128 );
+   i = CH57xNET_SetSocketTTL( SocketId,10 );
    mStopIfError(i);                                                             /* 检查错误 */
 }
 
@@ -178,7 +392,7 @@ UINT8 CH57xNET_LibInit(/*const*/ UINT8 *ip,/*const*/ UINT8 *gwip,/*const*/ UINT8
 #ifdef  KEEPLIVE_ENABLE
     net_initkeeplive( );
 #endif
-    return (i);                      
+    return (i);            
 }
 
 /*******************************************************************************
@@ -192,37 +406,80 @@ UINT8 CH57xNET_LibInit(/*const*/ UINT8 *ip,/*const*/ UINT8 *gwip,/*const*/ UINT8
 void CH57xNET_HandleSockInt(UINT8 sockeid,UINT8 initstat)
 {
     UINT32 len;
-    UINT32 totallen;
-    UINT8 *p = MyBuf;
+    UINT8 i;
+    unsigned char dup;
+	unsigned short packetid;
 
-    if(initstat & SINT_STAT_RECV)                                               /* 接收中断 */
+	int qos;
+	unsigned char retained;
+	MQTTString topicName={0};
+	unsigned char* payload;
+	int payloadlen;
+	unsigned char *p=payload;
+
+    if(initstat & SINT_STAT_RECV)                                                   /* 接收中断 */
     {
-        len = CH57xNET_SocketRecvLen(sockeid,NULL);                             /* 查询长度 */
-		PRINT("Receive Len = %d\r\n",len);                           
-        totallen = len;
-        CH57xNET_SocketRecv(sockeid,MyBuf,&len);                                /* 将接收缓冲区的数据读到MyBuf中*/
-        while(1)
-        {
-           len = totallen;
-           CH57xNET_SocketSend(sockeid,p,&len);                                 /* 将MyBuf中的数据发送 */
-           totallen -= len;                                                     /* 将总长度减去以及发送完毕的长度 */
-           p += len;                                                            /* 将缓冲区指针偏移*/
-           if(totallen)continue;                                                /* 如果数据未发送完毕，则继续发送*/
-           break;                                                               /* 发送完毕，退出 */
-        }
+    len = CH57xNET_SocketRecvLen(sockeid,NULL);		                         	/* 查询长度 */
+		CH57xNET_SocketRecv(sockeid,MyBuf,&len);		                          	/* 将接收缓冲区的数据读到MyBuf中*/
+		switch(MyBuf[0]>>4)
+		{
+			case FLAG_CONNACK:
+				PRINT("connack\r\n");
+				con_flag=1;
+        MQTT_Subscribe(sub_topic);
+				break;
+
+			case FLAG_PUBLISH:
+				MQTTDeserialize_publish(&dup,&qos,&retained,&packetid,&topicName,&payload,&payloadlen,MyBuf,len);
+				PRINT("qos=%d,retained=%d,packetid=%d,payloadlen=%d\r\n",qos,retained,packetid,(UINT16)payloadlen);
+				
+				p=(uint8_t *)topicName.lenstring.data;
+				printf("topic=");
+				for(i=0;i<topicName.lenstring.len;i++)
+				{
+					PRINT("%c",(UINT16)*p);
+					p++;
+				}
+				PRINT("\r\n");
+				
+				printf("payload:");
+				p=payload;
+				for(i=0;i<payloadlen;i++)
+				{
+					PRINT("%c",(UINT16)*p);
+					p++;
+				}
+				PRINT("\r\n");
+				break;
+				
+			case FLAG_SUBACK:
+				sub_flag=1;
+				PRINT("suback\r\n");
+				break;
+
+			default:
+
+				break;
+		}
     }
     if(initstat & SINT_STAT_CONNECT)                                            /* TCP连接中断 */
     {                                                                           /* 产生此中断表示TCP已经连接，可以进行收发数据 */
-        PRINT("TCP Connect Success\n");                           
+        PRINT("TCP Connect Success\n");   
+        MQTT_Connect(username, password);        
     }
     if(initstat & SINT_STAT_DISCONNECT)                                         /* TCP断开中断 */
     {                                                                           /* 产生此中断，CH579库内部会将此socket清除，置为关闭*/
-        PRINT("TCP Disconnect\n");                                              /* 应用曾需可以重新创建连接 */
+        PRINT("TCP Disconnect\n");                                              /* 应用层可以重新创建连接 */
+        Transport_Close();
+				Transport_Open();
+				con_flag=0;
     }
     if(initstat & SINT_STAT_TIM_OUT)                                            /* TCP超时中断 */
     {                                                                           /* 产生此中断，CH579库内部会将此socket清除，置为关闭*/
-        PRINT("TCP Timout\n");                                                  /* 应用曾需可以重新创建连接 */
-
+        PRINT("TCP Timout\n");                                                  /* 应用层需可以重新创建连接 */
+        Transport_Close();
+				Transport_Open();
+				con_flag=0;
     }
 }
 
@@ -244,7 +501,7 @@ void CH57xNET_HandleGlobalInt(void)
     {
         PRINT("UnreachCode ：%d\n",CH57xInf.UnreachCode);                       /* 查看不可达代码 */
         PRINT("UnreachProto ：%d\n",CH57xInf.UnreachProto);                     /* 查看不可达协议类型 */
-        PRINT("UnreachPort ：%d\n",CH57xInf.UnreachPort);                       /* 查询不可达端口 */       
+        PRINT("UnreachPort ：%d\n",CH57xInf.UnreachPort);                       /* 查询不可达端口 */      
     }
    if(initstat & GINT_STAT_IP_CONFLI)                                           /* IP冲突中断 */
    {
@@ -253,7 +510,7 @@ void CH57xNET_HandleGlobalInt(void)
    if(initstat & GINT_STAT_PHY_CHANGE)                                          /* PHY改变中断 */
    {
        i = CH57xNET_GetPHYStatus();                                             /* 获取PHY状态 */
-       PRINT("GINT_STAT_PHY_CHANGE %02x\n",i);
+       PRINT("GINT_STAT_PHY_CHANGE %02x\n",i);  
    }
    if(initstat & GINT_STAT_SOCKET)                                              /* Socket中断 */
    {
@@ -339,6 +596,30 @@ void GetMacAddr(UINT8 *pMAC)
 }
 
 /*******************************************************************************
+* Function Name	: MQTT_CheckKeepalive
+* Description	: MQTT 检查keepalive
+* Input			: None
+* Output		: None
+* Return		: None
+*******************************************************************************/
+
+static TickType_t last_ping_tick=0;
+
+void MQTT_CheckKeepalive()
+{
+	TickType_t current_tick=xTaskGetTickCount();
+	if(mqtt_keepalive!=0 && con_flag!=0)
+	{
+		if(current_tick-last_ping_tick>=pdMS_TO_TICKS(1000*mqtt_keepalive))
+		{
+			last_ping_tick=current_tick;
+			MQTT_Pingreq();//仅发送ping
+			
+		}
+	}		
+}
+
+/*******************************************************************************
 * Function Name  : net_main
 * Description    : 网络主任务及定时器回调
 * Input          : None
@@ -364,6 +645,9 @@ void  net_main_task(void *arg)
 		xTimerStart(xTimerCreate("Net",pdMS_TO_TICKS(CH57xNETTIMEPERIOD),pdTRUE,NULL,Net_Timer),0);	//初始化定时器
 	}
 	NVIC_EnableIRQ(ETH_IRQn);	
+	
+	Transport_Open();
+	
 	while ( CH57xInf.PHYStat < 2 )
 	{
 		vTaskDelay(pdMS_TO_TICKS(50));
@@ -378,6 +662,9 @@ void  net_main_task(void *arg)
 			vTaskSuspendAll();
       CH57xNET_MainTask();		/* CH57xNET库主任务函数，需要在主循环中不断调用 */
       if(CH57xNET_QueryGlobalInt())CH57xNET_HandleGlobalInt();                /* 查询中断，如果有中断，则调用全局中断处理函数 */
+			{
+				MQTT_CheckKeepalive();			
+			}
 			xTaskResumeAll();
 			taskYIELD();//任务切换
   }

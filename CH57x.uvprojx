@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>DEBUG</Define>
               <Undefine></Undefine>
-              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\NET\LIB</IncludePath>
+              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\NET\LIB;.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -578,6 +578,61 @@
               <FileName>net_main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\net_main.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>MQTT</GroupName>
+          <Files>
+            <File>
+              <FileName>MQTTConnectClient.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTConnectClient.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTConnectServer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTConnectServer.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTDeserializePublish.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTDeserializePublish.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTFormat.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTFormat.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTPacket.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTPacket.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTSerializePublish.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTSerializePublish.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTSubscribeClient.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTSubscribeClient.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTSubscribeServer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTSubscribeServer.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTUnsubscribeClient.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTUnsubscribeClient.c</FilePath>
+            </File>
+            <File>
+              <FileName>MQTTUnsubscribeServer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTUnsubscribeServer.c</FilePath>
             </File>
           </Files>
         </Group>
