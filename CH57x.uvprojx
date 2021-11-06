@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>DEBUG</Define>
               <Undefine></Undefine>
-              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0</IncludePath>
+              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\BLE\LIB;.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include;.\BLEAPP\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -563,6 +563,101 @@
               <FileName>FreeRTOSPort.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\lib\FreeRTOS\FreeRTOSPort.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>BaseBLE</GroupName>
+          <Files>
+            <File>
+              <FileName>CH57xBLE.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\LIB\CH57xBLE.lib</FilePath>
+            </File>
+            <File>
+              <FileName>CH57xBLE_LIB.H</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\LIB\CH57xBLE_LIB.H</FilePath>
+            </File>
+            <File>
+              <FileName>CH57xBLE_ROM.H</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\LIB\CH57xBLE_ROM.H</FilePath>
+            </File>
+            <File>
+              <FileName>KEY.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\KEY.c</FilePath>
+            </File>
+            <File>
+              <FileName>LED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\LED.c</FilePath>
+            </File>
+            <File>
+              <FileName>MCU.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\MCU.c</FilePath>
+            </File>
+            <File>
+              <FileName>RTC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\RTC.c</FilePath>
+            </File>
+            <File>
+              <FileName>SLEEP.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\SLEEP.c</FilePath>
+            </File>
+            <File>
+              <FileName>config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include\config.h</FilePath>
+            </File>
+            <File>
+              <FileName>HAL.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include\HAL.h</FilePath>
+            </File>
+            <File>
+              <FileName>KEY.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include\KEY.h</FilePath>
+            </File>
+            <File>
+              <FileName>LED.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include\LED.h</FilePath>
+            </File>
+            <File>
+              <FileName>RTC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include\RTC.h</FilePath>
+            </File>
+            <File>
+              <FileName>SLEEP.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include\SLEEP.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>BLEAPP</GroupName>
+          <Files>
+            <File>
+              <FileName>RF_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BLEAPP\RF_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>RF_PHY.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BLEAPP\RF_PHY.c</FilePath>
+            </File>
+            <File>
+              <FileName>RF_PHY.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\BLEAPP\include\RF_PHY.h</FilePath>
             </File>
           </Files>
         </Group>

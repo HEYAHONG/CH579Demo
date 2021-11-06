@@ -28,6 +28,8 @@ void main_task2(void *arg)
 
 extern void HardwareInit(void);
 
+extern void BLE_main(void *arg);
+
 int main()
 {  
 		/*初始化硬件*/
@@ -36,7 +38,8 @@ int main()
 		/*创建任务*/
 		xTaskCreate( main_task1, "main_task1",128, NULL, 1, NULL );
 		xTaskCreate( main_task2, "main_task2",128, NULL, 1, NULL );
-	
+		
+		xTaskCreate( BLE_main, "BLE_task",512, NULL, 1, NULL );//蓝牙任务
 	
 		FreeRTOS_Start();//启动FreeRTOS（更新时钟，启用调度器）
     while(1);    
@@ -45,4 +48,12 @@ int main()
 void HardwareInit(void)
 {
 	SetSysClock(CLK_SOURCE_HSI_32MHz);
+	
+	{
+		//UART1 Init
+		GPIOA_SetBits( GPIO_Pin_9 );
+		GPIOA_ModeCfg( GPIO_Pin_9, GPIO_ModeOut_PP_5mA );                    
+		UART1_DefInit(); 
+	}
+
 }
