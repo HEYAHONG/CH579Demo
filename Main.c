@@ -40,7 +40,9 @@ int main()
 		xTaskCreate( main_task1, "main_task1",128, NULL, 1, NULL );
 		xTaskCreate( main_task2, "main_task2",128, NULL, 1, NULL );
 	
-		xTaskCreate( net_main_task, "net_main_task",512, NULL, 1, NULL );//网络主任务占用堆栈较大	
+		xTaskCreate( net_main_task, "net_main_task",1024, NULL, 1, NULL );//网络主任务占用堆栈较大	
+	
+		PRINT("Starting FreeRTOS!!FreeMem= %d Bytes\r\n",xPortGetFreeHeapSize());
 	
 		FreeRTOS_Start();//启动FreeRTOS（更新时钟，启用调度器）
     while(1);    
