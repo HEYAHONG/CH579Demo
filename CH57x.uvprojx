@@ -333,9 +333,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>DEBUG</Define>
+              <Define>DEBUG,HAVE_CONFIG_H=1</Define>
               <Undefine></Undefine>
-              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\NET\LIB;.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC</IncludePath>
+              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\NET\LIB;.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC;.\lib\SimpleMQTTGateWayStack\lib\include;.\</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -633,6 +633,26 @@
               <FileName>MQTTUnsubscribeServer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\lib\CH579EVT\EVT\EXAM\NET\MQTT\MQTT_SRC\MQTTUnsubscribeServer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>SMGS</GroupName>
+          <Files>
+            <File>
+              <FileName>libSMGS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\lib\SimpleMQTTGateWayStack\lib\libSMGS.c</FilePath>
+            </File>
+            <File>
+              <FileName>libSMGS.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\SimpleMQTTGateWayStack\lib\include\libSMGS.h</FilePath>
+            </File>
+            <File>
+              <FileName>libSMGS_DefaultConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\lib\SimpleMQTTGateWayStack\lib\include\libSMGS_DefaultConfig.h</FilePath>
             </File>
           </Files>
         </Group>
