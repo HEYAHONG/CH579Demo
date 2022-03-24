@@ -9,6 +9,8 @@
 #include "task.h"
 #include "timers.h"
 #include "MQTTPacket.H"
+#include "stdbool.h"
+#include "net_protocol.h"
 
 #define KEEPLIVE_ENABLE                      1                                  /* 开启KEEPLIVE功能 */
 
@@ -26,7 +28,7 @@ UINT16 MemNum[8] = {CH57xNET_NUM_IPRAW,
                     CH57xNET_NUM_PBUF,
                     CH57xNET_NUM_POOL_BUF
                     };
- UINT16 MemSize[8] = {CH57xNET_MEM_ALIGN_SIZE(CH57xNET_SIZE_IPRAW_PCB),
+UINT16 MemSize[8] = {CH57xNET_MEM_ALIGN_SIZE(CH57xNET_SIZE_IPRAW_PCB),
                     CH57xNET_MEM_ALIGN_SIZE(CH57xNET_SIZE_UDP_PCB),
                     CH57xNET_MEM_ALIGN_SIZE(CH57xNET_SIZE_TCP_PCB),
                     CH57xNET_MEM_ALIGN_SIZE(CH57xNET_SIZE_TCP_PCB_LISTEN),
@@ -51,35 +53,35 @@ __align(4)UINT8 Mem_ArpTable[CH57xNET_RAM_ARP_TABLE_SIZE];
 																		
 /* CH579相关定义 */
 UINT8 MACAddr[6] = {0x84,0xc2,0xe4,0x02,0x03,0x04};                             /* CH579MAC地址 */
-UINT8 IPAddr[4] = {192,168,1,200};                                                          /* CH579IP地址 */
-UINT8 GWIPAddr[4] = {192,168,1,1};                                              /* CH579网关 */
-UINT8 IPMask[4] = {255,255,255,0};                                              /* CH579子网掩码 */
+static UINT8 IPAddr[4] = {192,168,1,200};                                                          /* CH579IP地址 */
+static UINT8 GWIPAddr[4] = {192,168,1,1};                                              /* CH579网关 */
+static UINT8 IPMask[4] = {255,255,255,0};                                              /* CH579子网掩码 */
 
 
-UINT8 DESIP[4] = {162,14,81,127};                                               /* 目的IP地址 */
-UINT16 aport=1000;											                   /* CH579源端口 */
+static UINT8 DESIP[4] = {162,14,81,127};                                               /* 目的IP地址 */
+static UINT16 aport=1000;											                   /* CH579源端口 */
 
 /* 网口灯定义 PB口低十六位有效 */
 UINT16 CH57xNET_LEDCONN=0x0010;                                                 /* 连接指示灯 PB4 */
 UINT16 CH57xNET_LEDDATA=0x0080;                                                 /* 通讯指示灯 PB7 */ 
 
-char *username  = "";							                               /* 设备名，每个设备唯一，可用”/“做分级 */
-char *password  = "";								                           /* 服务器登陆密码 */
-char *sub_topic = "+/#";								                           /* 订阅的会话名，为了自发自收，应与发布的会话名相同 */
-char *pub_topic = "";									                       /* 发布的会话*/
-size_t mqtt_keepalive=20;																			/*MQTT 的Keepalaive*/
-char *mqtt_clientid="CH579";																/*MQTT的clientid*/
+static char *username  = "";							                               /* 设备名，每个设备唯一，可用”/“做分级 */
+static char *password  = "";								                           /* 服务器登陆密码 */
+//static char *sub_topic = "+/#";								                           /* 订阅的会话名，为了自发自收，应与发布的会话名相同 */
+//static char *pub_topic = "";									                       /* 发布的会话*/
+static size_t mqtt_keepalive=20;																			/*MQTT 的Keepalaive*/
+static char *mqtt_clientid="CH579";																/*MQTT的clientid*/
 
 
-UINT8 SocketId;                                                                /* 保存socket索引，可以不用定义 */
-UINT8 SocketRecvBuf[RECE_BUF_LEN];                                             /* socket接收缓冲区 */
-UINT8 MyBuf[RECE_BUF_LEN];                                                     /* 定义一个临时缓冲区 */
+static UINT8 SocketId;                                                                /* 保存socket索引，可以不用定义 */
+static UINT8 SocketRecvBuf[RECE_BUF_LEN];                                             /* socket接收缓冲区 */
+static UINT8 MyBuf[RECE_BUF_LEN];                                                     /* 定义一个临时缓冲区 */
 
-UINT8 con_flag=0;										                       /* 已连接MQTT服务器标志位 */
-UINT8 pub_flag=1;											                   /* 已发布会话消息标志位 */
-UINT8 sub_flag=0;											                   /* 已订阅会话标志位 */
-UINT8 tout_flag=0;											                   /* 超时标志位 */
-UINT16 packetid=0;											                   /* 包ID */
+static UINT8 con_flag=0;										                       /* 已连接MQTT服务器标志位 */
+//static UINT8 pub_flag=1;											                   /* 已发布会话消息标志位 */
+static UINT8 sub_flag=0;											                   /* 已订阅会话标志位 */
+//static UINT8 tout_flag=0;											                   /* 超时标志位 */
+static UINT16 packetid=0;											                   /* 包ID */
 
 
 
@@ -211,6 +213,8 @@ void MQTT_Connect(char *username,char *password)
 	data.cleansession = 1;
 	data.username.cstring = username;																		
 	data.password.cstring = password;
+	
+	Net_Protocol_On_Connect(&data);
 	 
 	len=MQTTSerialize_connect(buf,sizeof(buf),&data);											
 	Transport_SendPacket(buf,len);						
@@ -265,15 +269,12 @@ void MQTT_Unsubscribe(char *topic)
 * Output		: None
 * Return		: None
 *******************************************************************************/
-void MQTT_Publish(char *topic,char *payload)
+void MQTT_Publish(char *topic,char *payload,size_t payloadlen)
 {
 	MQTTString topicString = MQTTString_initializer;
-	UINT32 payloadlen;
 	UINT32 len;
-	UINT8 buf[1024];
-	
+	UINT8 buf[1024];	
 	topicString.cstring=topic; 
-	payloadlen=strlen(payload);
 	len= MQTTSerialize_publish(buf,sizeof(buf),0,0,0,packetid++,topicString,(uint8_t *)payload,payloadlen);	
 	Transport_SendPacket(buf,len);
 }
@@ -406,7 +407,7 @@ UINT8 CH57xNET_LibInit(/*const*/ UINT8 *ip,/*const*/ UINT8 *gwip,/*const*/ UINT8
 void CH57xNET_HandleSockInt(UINT8 sockeid,UINT8 initstat)
 {
     UINT32 len;
-    UINT8 i;
+    //UINT8 i;
     unsigned char dup;
 	unsigned short packetid;
 
@@ -415,7 +416,7 @@ void CH57xNET_HandleSockInt(UINT8 sockeid,UINT8 initstat)
 	MQTTString topicName={0};
 	unsigned char* payload;
 	int payloadlen;
-	unsigned char *p=payload;
+	//unsigned char *p=payload;
 
     if(initstat & SINT_STAT_RECV)                                                   /* 接收中断 */
     {
@@ -426,12 +427,15 @@ void CH57xNET_HandleSockInt(UINT8 sockeid,UINT8 initstat)
 			case FLAG_CONNACK:
 				PRINT("connack\r\n");
 				con_flag=1;
-        MQTT_Subscribe(sub_topic);
+        //MQTT_Subscribe(sub_topic);
+			  Net_Protocol_On_Connected();
 				break;
 
 			case FLAG_PUBLISH:
+			{
 				MQTTDeserialize_publish(&dup,&qos,&retained,&packetid,&topicName,&payload,&payloadlen,MyBuf,len);
-				PRINT("qos=%d,retained=%d,packetid=%d,payloadlen=%d\r\n",qos,retained,packetid,(UINT16)payloadlen);
+				/*
+			  PRINT("qos=%d,retained=%d,packetid=%d,payloadlen=%d\r\n",qos,retained,packetid,(UINT16)payloadlen);
 				
 				p=(uint8_t *)topicName.lenstring.data;
 				printf("topic=");
@@ -450,12 +454,22 @@ void CH57xNET_HandleSockInt(UINT8 sockeid,UINT8 initstat)
 					p++;
 				}
 				PRINT("\r\n");
-				break;
+				*/
+				Net_Protocol_On_Message(topicName.lenstring.data,topicName.lenstring.len,payload,payloadlen,qos,retained);
+			}
+			break;
 				
 			case FLAG_SUBACK:
-				sub_flag=1;
+			{
+				if(sub_flag!=1)
+				{
+					sub_flag=1;	
+					Net_Protocol_On_Subscribe_Success();
+				}
 				PRINT("suback\r\n");
-				break;
+			  
+			}
+			break;
 
 			default:
 
@@ -473,6 +487,7 @@ void CH57xNET_HandleSockInt(UINT8 sockeid,UINT8 initstat)
         Transport_Close();
 				Transport_Open();
 				con_flag=0;
+				sub_flag=0;
     }
     if(initstat & SINT_STAT_TIM_OUT)                                            /* TCP超时中断 */
     {                                                                           /* 产生此中断，CH579库内部会将此socket清除，置为关闭*/
@@ -480,6 +495,7 @@ void CH57xNET_HandleSockInt(UINT8 sockeid,UINT8 initstat)
         Transport_Close();
 				Transport_Open();
 				con_flag=0;
+			  sub_flag=0;
     }
 }
 
@@ -656,7 +672,10 @@ void  net_main_task(void *arg)
 	{
 		CH57xNET_DHCPStart(CH57xNET_DHCPCallBack);                            /* 启动DHCP */
   }		
-  PRINT("CH579 dhcp client create！\r\n");   	
+  PRINT("CH579 dhcp client create！\r\n");
+  
+	Net_Protocol_Init();
+	
   while(1)
   {
 			vTaskSuspendAll();
@@ -669,4 +688,13 @@ void  net_main_task(void *arg)
 			taskYIELD();//任务切换
   }
 }
+/*********************************** 其它函数 **********************************/
+
+
+bool MQTT_Is_Connected(void)
+{
+	return con_flag!=0 && sub_flag!=0;
+}
+
+
 /*********************************** endfile **********************************/
