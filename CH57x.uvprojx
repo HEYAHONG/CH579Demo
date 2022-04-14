@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>DEBUG</Define>
               <Undefine></Undefine>
-              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\BLE\LIB;.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include;.\BLEAPP\include</IncludePath>
+              <IncludePath>.\lib\CH579EVT\EVT\EXAM\SRC\CMSIS\Include;.\lib\CH579EVT\EVT\EXAM\SRC\Startup;.\lib\CH579EVT\EVT\EXAM\SRC\StdPeriphDriver\inc;.\lib\FreeRTOS;.\lib\FreeRTOS\FreeRTOS-Kernel\include;.\lib\FreeRTOS\FreeRTOS-Kernel\portable\RVDS\ARM_CM0;.\lib\CH579EVT\EVT\EXAM\BLE\LIB;.\lib\CH579EVT\EVT\EXAM\BLE\HAL\include;.\BLEAPP\include;.\BLEAPP\APP\include;.\BLEAPP\Profile\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -645,19 +645,44 @@
           <GroupName>BLEAPP</GroupName>
           <Files>
             <File>
-              <FileName>RF_main.c</FileName>
+              <FileName>centPeri_main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\BLEAPP\RF_main.c</FilePath>
+              <FilePath>.\BLEAPP\APP\centPeri_main.c</FilePath>
             </File>
             <File>
-              <FileName>RF_PHY.c</FileName>
+              <FileName>central.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\BLEAPP\RF_PHY.c</FilePath>
+              <FilePath>.\BLEAPP\APP\central.c</FilePath>
             </File>
             <File>
-              <FileName>RF_PHY.h</FileName>
+              <FileName>peripheral.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BLEAPP\APP\peripheral.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>BLEProfile</GroupName>
+          <Files>
+            <File>
+              <FileName>devinfoservice.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BLEAPP\Profile\devinfoservice.c</FilePath>
+            </File>
+            <File>
+              <FileName>gattprofile.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\BLEAPP\Profile\gattprofile.c</FilePath>
+            </File>
+            <File>
+              <FileName>devinfoservice.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\BLEAPP\include\RF_PHY.h</FilePath>
+              <FilePath>.\BLEAPP\Profile\include\devinfoservice.h</FilePath>
+            </File>
+            <File>
+              <FileName>gattprofile.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\BLEAPP\Profile\include\gattprofile.h</FilePath>
             </File>
           </Files>
         </Group>
