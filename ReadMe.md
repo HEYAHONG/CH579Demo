@@ -21,3 +21,14 @@
 ## 串口
 
 115200 8N1
+
+# 其它开发方式说明
+
+除了使用SDK进行开发,还可使用RT-Thread进行开发。
+
+支持的BSP目录为：bsp/wch/arm/ch579m
+
+## 相关链接
+
+- https://github.com/RT-Thread/rt-thread.git
+- https://gitee.com/rtthread/rt-thread.git
